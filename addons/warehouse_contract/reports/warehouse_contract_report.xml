@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Paper Format for Landscape -->
+        <record id="paperformat_warehouse_contract_landscape" model="report.paperformat">
+            <field name="name">A4 Landscape</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">35</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <!-- Report Action -->
+        <record id="action_report_warehouse_contract" model="ir.actions.report">
+            <field name="name">Nota Perhitungan Unit Gudang</field>
+            <field name="model">warehouse.contract</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">warehouse_contract.report_warehouse_contract_template</field>
+            <field name="report_file">warehouse_contract.report_warehouse_contract_template</field>
+            <field name="print_report_name">'Nota Kontrak - %s' % (object.name)</field>
+            <field name="binding_model_id" ref="model_warehouse_contract"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="paperformat_warehouse_contract_landscape"/>
+        </record>
+
+        <!-- Report Template -->
+        <template id="report_warehouse_contract_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+                        <div class="page">
+                            <!-- Custom Header for Persero Batam -->
+                            <div class="row mb-4" style="border-bottom: 2px solid black; padding-bottom: 10px;">
+                                <div class="col-3 text-center">
+                                    <img t-if="o.env.company.logo" t-att-src="image_data_uri(o.env.company.logo)" style="max-height: 80px;" alt="Logo Persero Batam"/>
+                                </div>
+                                <div class="col-9">
+                                    <h4 style="margin-bottom: 5px;"><strong>PT. PENGUSAHAAN DAERAH INDUSTRI PULAU BATAM (PERSERO)</strong></h4>
+                                    <p style="margin-bottom: 0; font-size: 14px;">Jl. Yos Sudarso Batu Ampar - Batam</p>
+                                    <p style="margin-bottom: 0; font-size: 14px;">Telp: (0778) 458995 Email: umum@perserobatam.com</p>
+                                </div>
+                            </div>
+
+                            <h3 class="text-center mb-4">
+                                <strong>NOTA PERHITUNGAN UNIT GUDANG<br/>( KONTRAK )</strong>
+                            </h3>
+
+                            <div class="row mb-4" style="font-size: 14px;">
+                                <div class="col-6">
+                                    <strong>NOMOR KONTRAK :</strong> <span t-field="o.name"/><br/>
+                                    <strong>PERIODE KONTRAK :</strong> <span t-field="o.date_start" t-options='{"widget": "date", "format": "dd MMMM yyyy"}'/> - <span t-field="o.date_end" t-options='{"widget": "date", "format": "dd MMMM yyyy"}'/><br/>
+                                    <strong>DITAGIH KEPADA :</strong> <span t-field="o.partner_id.name"/>
+                                </div>
+                                <div class="col-6">
+                                    <strong>NOMOR NOTA :</strong> <span t-field="o.nota_number"/><br/>
+                                    <strong>JENIS GUDANG :</strong> <span t-field="o.warehouse_type"/><br/>
+                                    <strong>NAMA GUDANG :</strong> <span t-field="o.warehouse_name"/>
+                                </div>
+                            </div>
+
+                            <table class="table table-sm table-bordered text-center" style="font-size: 12px; border: 1px solid black;">
+                                <thead style="background-color: #e9ecef;">
+                                    <tr>
+                                        <th style="border: 1px solid black; vertical-align: middle;">No</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Nama Perusahaan</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Dari</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Hingga</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Total<br/>Bulan<br/>Kontrak</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Grass<br/>Periode<br/>(Bulan)</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Total<br/>Bulan<br/>(Billable)</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Sewa per Bulan (Rp)</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Total Biaya Sewa<br/>(Total Bulan x Sewa)</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Pajak 10%</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Sewa Setelah Pajak</th>
+                                        <th style="border: 1px solid black; vertical-align: middle;">Revenue Sharing<br/>ke PB (5%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="index" t-value="1"/>
+                                    <t t-foreach="o.line_ids" t-as="line">
+                                        <tr>
+                                            <td style="border: 1px solid black;"><t t-esc="index"/></td>
+                                            <td style="border: 1px solid black; text-align: left;"><span t-field="line.company_id.name"/></td>
+                                            <td style="border: 1px solid black;"><span t-field="line.date_start" t-options='{"widget": "date", "format": "MMM-yy"}'/></td>
+                                            <td style="border: 1px solid black;"><span t-field="line.date_end" t-options='{"widget": "date", "format": "MMM-yy"}'/></td>
+                                            <td style="border: 1px solid black;"><span t-field="line.total_months"/></td>
+                                            <td style="border: 1px solid black;"><span t-field="line.grace_period"/></td>
+                                            <td style="border: 1px solid black;"><span t-field="line.billable_months"/></td>
+                                            <td style="border: 1px solid black; text-align: right;"><span t-field="line.monthly_rent" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                            <td style="border: 1px solid black; text-align: right;"><span t-field="line.total_rent" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                            <td style="border: 1px solid black; text-align: right;"><span t-field="line.tax_amount" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                            <td style="border: 1px solid black; text-align: right;"><span t-field="line.total_after_tax" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                            <td style="border: 1px solid black; text-align: right;"><span t-field="line.revenue_sharing" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                        </tr>
+                                        <t t-set="index" t-value="index + 1"/>
+                                    </t>
+                                    <!-- Totals Row -->
+                                    <tr style="font-weight: bold; background-color: #e9ecef;">
+                                        <td colspan="8" style="border: 1px solid black;">Total</td>
+                                        <td style="border: 1px solid black; text-align: right;"><span t-field="o.total_rent" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                        <td style="border: 1px solid black; text-align: right;"><span t-field="o.total_tax" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                        <td style="border: 1px solid black; text-align: right;"><span t-field="o.total_after_tax" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                        <td style="border: 1px solid black; text-align: right;"><span t-field="o.total_revenue_sharing" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="mt-5" style="font-size: 13px; page-break-inside: avoid;">
+                                <table class="table table-sm table-bordered text-center" style="border: 2px solid black; width: 100%;">
+                                    <thead style="background-color: #f8f9fa;">
+                                        <tr>
+                                            <th style="border: 2px solid black; width: 25%;" colspan="2">UNIT PEMASARAN</th>
+                                            <th style="border: 2px solid black; width: 50%;" colspan="2">UNIT INVOICE</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="border: 1px solid black; width: 25%; font-weight: normal;">Dibuat Oleh</th>
+                                            <th style="border: 1px solid black; width: 25%; font-weight: normal;">Diperiksa Oleh</th>
+                                            <th style="border: 1px solid black; width: 25%; font-weight: normal;">Diketahui Oleh</th>
+                                            <th style="border: 1px solid black; width: 25%; font-weight: normal;">Diperiksa Oleh</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="height: 100px;">
+                                            <td style="border: 1px solid black; vertical-align: bottom;">
+                                                (<u> Tselviana Annisa </u>)<br/>
+                                                Staf Pemasaran
+                                            </td>
+                                            <td style="border: 1px solid black; vertical-align: bottom;">
+                                                (<u> Abdul Dali </u>)<br/>
+                                                Man. Pemasaran &amp; Multimoda
+                                            </td>
+                                            <td style="border: 1px solid black; vertical-align: bottom;">
+                                                (<u> Abdul Dali </u>)<br/>
+                                                GM. Operasi &amp; Pemasaran
+                                            </td>
+                                            <td style="border: 1px solid black; vertical-align: bottom;">
+                                                (<u> &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; </u>)<br/>
+                                                &amp;nbsp;
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>
